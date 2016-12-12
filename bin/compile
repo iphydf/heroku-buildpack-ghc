@@ -15,6 +15,10 @@ GHC_VER=${GHC_VER:-7.10.3}
 CABAL_VER=${CABAL_VER:-1.22.8.0}
 PREBUILT=${PREBUILT:-https://s3.amazonaws.com/heroku-ghc}
 CLEAR_CACHE=${CLEAR_CACHE:-0}
+DEPLOY_GHC=false     # Whether to make GHC binaries available to the app.
+DEPLOY_SANDBOX=false # Whether to make the sandbox available to the app.
+DEPLOY_CABAL=false   # Whether to make the .cabal config available to the app.
+DEPLOY_BINARY=true   # Whether to copy the binaries from dist/build/*/*.
 
 CABAL_INDEX="~/.cabal/packages/hackage.haskell.org/00-index.tar"
 #############################################################################
@@ -281,21 +285,30 @@ if [ -d $WORKING_HOME/.cabal-sandbox ]; then
   cp -R $WORKING_HOME/.cabal-sandbox $CACHE_DIR
 fi
 
-echo "-----> Making GHC binaries available to Heroku command line"
-mkdir -p $BUILD_DIR/vendor
-mv $WORKING_HOME/vendor/ghc-libs $BUILD_DIR/vendor
-mv $WORKING_HOME/vendor/ghc-utils $BUILD_DIR/vendor
-mv $WORKING_HOME/vendor/ghc-includes $BUILD_DIR/vendor
-mv $WORKING_HOME/vendor/ghc-$GHC_VER $BUILD_DIR/vendor
-mv $WORKING_HOME/vendor/cabal-install-$CABAL_VER $BUILD_DIR/vendor
-
-echo "-----> Making cabal config available to Heroku command line"
-if [ -d $WORKING_HOME/.cabal ]; then
-  mv $WORKING_HOME/.cabal $BUILD_DIR
+if $DEPLOY_GHC; then
+  echo "-----> Making GHC binaries available to Heroku command line"
+  mkdir -p $BUILD_DIR/vendor
+  mv $WORKING_HOME/vendor/ghc-libs $BUILD_DIR/vendor
+  mv $WORKING_HOME/vendor/ghc-utils $BUILD_DIR/vendor
+  mv $WORKING_HOME/vendor/ghc-includes $BUILD_DIR/vendor
+  mv $WORKING_HOME/vendor/ghc-$GHC_VER $BUILD_DIR/vendor
+  mv $WORKING_HOME/vendor/cabal-install-$CABAL_VER $BUILD_DIR/vendor
 fi
 
-echo "-----> Making cabal sandbox available to Heroku command line"
-if [ -d $WORKING_HOME/.cabal-sandbox ]; then
-  cp -R $WORKING_HOME/.cabal-sandbox $BUILD_DIR
+if $DEPLOY_CABAL; then
+  echo "-----> Making cabal config available to Heroku command line"
+  if [ -d $WORKING_HOME/.cabal ]; then
+    mv $WORKING_HOME/.cabal $BUILD_DIR
+  fi
 fi
 
+if $DEPLOY_SANDBOX; then
+  echo "-----> Making cabal sandbox available to Heroku command line"
+  if [ -d $WORKING_HOME/.cabal-sandbox ]; then
+    cp -R $WORKING_HOME/.cabal-sandbox $BUILD_DIR
+  fi
+fi
+
+if $DEPLOY_BINARIES; then
+  find dist/build/*/ -type f -perm u+rwx -exec cp {} $BUILD_DIR \;
+fi
