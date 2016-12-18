@@ -20,6 +20,9 @@ DEPLOY_SANDBOX=false # Whether to make the sandbox available to the app.
 DEPLOY_CABAL=false   # Whether to make the .cabal config available to the app.
 DEPLOY_BINARY=true   # Whether to copy the binaries from dist/build/*/*.
 
+# The target to build in the cabal package. If empty, build everything.
+WEBSERVICE_TARGET=webservice
+
 CABAL_INDEX="~/.cabal/packages/hackage.haskell.org/00-index.tar"
 #############################################################################
 
@@ -266,7 +269,7 @@ fi
 echo "-----> Installing user application"
 cabal configure --disable-library-profiling --disable-executable-profiling --disable-tests --disable-library-coverage --disable-benchmarks --enable-executable-stripping --disable-split-objs || true
 cabal install --only-dependencies --reorder-goals --disable-library-profiling --disable-tests --disable-library-coverage --disable-benchmarks --disable-documentation --disable-split-objs
-cabal build -j
+cabal build -j $WEBSERVICE_TARGET
 
 # Set context environment variables.
 set-env PATH "/app/vendor/ghc-$GHC_VER/bin:/app/vendor/ghc-utils/bin:/app/vendor/cabal-install-$CABAL_VER/bin"':$PATH'
