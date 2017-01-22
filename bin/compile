@@ -21,7 +21,7 @@ DEPLOY_CABAL=false   # Whether to make the .cabal config available to the app.
 DEPLOY_BINARY=true   # Whether to copy the binaries from dist/build/*/*.
 
 # The target to build in the cabal package. If empty, build everything.
-WEBSERVICE_TARGET=webservice
+WEBSERVICE_TARGET=${WEBSERVICE_TARGET:-webservice}
 
 CABAL_INDEX="~/.cabal/packages/hackage.haskell.org/00-index.tar"
 #############################################################################
